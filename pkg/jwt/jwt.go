@@ -95,6 +95,7 @@ func (jwtHandler *JWTHandler) InjectJWTKey(username string, w http.ResponseWrite
 		Value:    tokenString,
 		MaxAge:   300,
 		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
 	})
 }
 

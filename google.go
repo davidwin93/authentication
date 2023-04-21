@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -10,6 +11,14 @@ import (
 
 	"golang.org/x/oauth2"
 )
+
+type googleUser struct {
+	ID            string `json:"id"`
+	Email         string `json:"email"`
+	VerifiedEmail bool   `json:"verified_email"`
+	Picture       string `json:"picture"`
+	HD            string `json:"hd"`
+}
 
 type GoogleLoginProvider struct {
 	config     *oauth2.Config
@@ -79,9 +88,18 @@ func (auth *AuthenticationService) GoogleCallback(w http.ResponseWriter, r *http
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			return
 		}
+		googleUsr := googleUser{}
+		err = json.Unmarshal(response, &googleUsr)
+		if err != nil {
+			log.Println("ReadAll: " + err.Error() + "\n")
+			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			return
+		}
 
-		log.Println("parseResponseBody: " + string(response) + "\n")
-		isValid, err := auth.SocialValidator.IsUserValid(&SocialClaim{})
+		isValid, err := auth.SocialValidator.IsUserValid(&SocialClaim{
+			Username: googleUsr.Email,
+		})
+
 		if err != nil {
 			log.Println("IsUserValid: " + err.Error() + "\n")
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
@@ -92,7 +110,7 @@ func (auth *AuthenticationService) GoogleCallback(w http.ResponseWriter, r *http
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			return
 		}
-		auth.JWTHandler.InjectJWTKey("david", w, r)
+		auth.JWTHandler.InjectJWTKey(googleUsr.Email, w, r)
 		http.Redirect(w, r, auth.RedirectURL, http.StatusTemporaryRedirect)
 		return
 	}
