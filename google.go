@@ -111,7 +111,7 @@ func (auth *AuthenticationService) GoogleCallback(w http.ResponseWriter, r *http
 			return
 		}
 		auth.JWTHandler.InjectJWTKey(googleUsr.Email, w, r)
-		http.Redirect(w, r, auth.RedirectURL, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, auth.RedirectURL, http.StatusFound)
 		return
 	}
 }
