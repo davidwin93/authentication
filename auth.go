@@ -111,17 +111,25 @@ func (auth *AuthenticationService) LoginHandler(w http.ResponseWriter, r *http.R
 }
 
 func (auth *AuthenticationService) ValidateUser(w http.ResponseWriter, r *http.Request) {
+	jwtValue := ""
 	cookie, err := r.Cookie("token")
-	if err != nil {
+	if err == nil {
+		jwtValue = cookie.Value
+	}
+	token := r.Header.Get("Authorization")
+	if token != "" {
+		jwtValue = token
+	}
+
+	if jwtValue == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-
 	// if err := cookie.Valid(); err != nil {
 	// 	w.WriteHeader(http.StatusUnauthorized)
 	// 	return
 	// }
-	claims, err := auth.JWTHandler.ValidateJWT(cookie.Value)
+	claims, err := auth.JWTHandler.ValidateJWT(jwtValue)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
