@@ -29,8 +29,15 @@ type TestUserPasswordValidator struct {
 	PasswordValidator func(username, password string) (bool, error)
 }
 
-func (t *TestUserPasswordValidator) IsUserPasswordValid(username, password string) (bool, error) {
-	return t.PasswordValidator(username, password)
+func (t *TestUserPasswordValidator) GetUserIfPasswordValid(username, password string) (*User, error) {
+	valid, err := t.PasswordValidator(username, password)
+	if err != nil {
+		return nil, err
+	}
+	if !valid {
+		return nil, fmt.Errorf("invalid username or password")
+	}
+	return &User{Name: "test"}, nil
 }
 func Test_NewAuthenticationWithSocialValidator(t *testing.T) {
 	auth := NewAuthenticationService(WithSocialValidator(&TestSocialValidator{}))

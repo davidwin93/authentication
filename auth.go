@@ -15,17 +15,19 @@ Need to handle authentication via the following methods:
 * username and password
 * google auth
 
-This will be done by exporting a set of http handlers that can handle the entire Oauth flow, and accept username and password
+# This will be done by exporting a set of http handlers that can handle the entire Oauth flow, and accept username and password
 
 I need the following interfaces:
 * LoginValidation confirms if a username and password are valid
 * PasswordHardener is used to harden a password before it is stored
 * SocialValidation confirms that a user is signed up and is called on each callback
 */
-
+type User struct {
+	Name string
+}
 type LoginValidation interface {
 	// IsUserPasswordValid returns true if the username and password are valid. If an error is returned a generic error will be sent to the client
-	IsUserPasswordValid(username, password string) (bool, error)
+	GetUserIfPasswordValid(username, password string) (*User, error)
 }
 
 type SocialClaim struct {
@@ -96,13 +98,13 @@ func (auth *AuthenticationService) LoginHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	valid, err := auth.UserPasswordValidator.IsUserPasswordValid(userPassword.Username, userPassword.Password)
+	user, err := auth.UserPasswordValidator.GetUserIfPasswordValid(userPassword.Username, userPassword.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if valid {
-		auth.JWTHandler.InjectJWTKey(jwt.JWTOptions{Username: userPassword.Username}, w, r)
+	if user != nil {
+		auth.JWTHandler.InjectJWTKey(jwt.JWTOptions{Username: userPassword.Username, Name: user.Name}, w, r)
 		http.Redirect(w, r, auth.RedirectURL, http.StatusFound)
 		return
 	}
