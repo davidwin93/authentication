@@ -102,7 +102,7 @@ func (auth *AuthenticationService) LoginHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 	if valid {
-		auth.JWTHandler.InjectJWTKey(userPassword.Username, w, r)
+		auth.JWTHandler.InjectJWTKey(jwt.JWTOptions{Username: userPassword.Username}, w, r)
 		http.Redirect(w, r, auth.RedirectURL, http.StatusFound)
 		return
 	}

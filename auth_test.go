@@ -110,7 +110,7 @@ func Test_ValidateUser(t *testing.T) {
 	auth.JWTHandler = handler
 	r := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/login", nil)
-	handler.InjectJWTKey("david", r, req)
+	handler.InjectJWTKey(jwt.JWTOptions{Username: "david", Name: "Dave"}, r, req)
 	if r.Result().StatusCode != http.StatusOK {
 		t.Error("Failed to inject JWT key")
 	}

@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 
+	jwt "github.com/davidwin93/authentication/pkg/jwt"
 	"golang.org/x/oauth2"
 )
 
@@ -18,6 +19,7 @@ type googleUser struct {
 	VerifiedEmail bool   `json:"verified_email"`
 	Picture       string `json:"picture"`
 	HD            string `json:"hd"`
+	Name          string `json:"name"`
 }
 
 type GoogleLoginProvider struct {
@@ -75,7 +77,7 @@ func (auth *AuthenticationService) GoogleCallback(w http.ResponseWriter, r *http
 		log.Println("TOKEN>> AccessToken>> " + token.AccessToken)
 		log.Println("TOKEN>> Expiration Time>> " + token.Expiry.String())
 		log.Println("TOKEN>> RefreshToken>> " + token.RefreshToken)
-		resp, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + url.QueryEscape(token.AccessToken))
+		resp, err := http.Get("https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + url.QueryEscape(token.AccessToken))
 		if err != nil {
 			log.Println("Get: " + err.Error() + "\n")
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
@@ -110,7 +112,7 @@ func (auth *AuthenticationService) GoogleCallback(w http.ResponseWriter, r *http
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			return
 		}
-		auth.JWTHandler.InjectJWTKey(googleUsr.Email, w, r)
+		auth.JWTHandler.InjectJWTKey(jwt.JWTOptions{Username: googleUsr.Email, Name: googleUsr.Name}, w, r)
 		http.Redirect(w, r, auth.RedirectURL, http.StatusFound)
 		return
 	}

@@ -23,7 +23,7 @@ func Test_JWTInjection(t *testing.T) {
 	handler := NewJWTHandlerBytes(private, public)
 	r := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/login", nil)
-	handler.InjectJWTKey("david", r, req)
+	handler.InjectJWTKey(JWTOptions{Username: "david"}, r, req)
 	if r.Result().StatusCode != http.StatusOK {
 		t.Error("Failed to inject JWT key")
 	}

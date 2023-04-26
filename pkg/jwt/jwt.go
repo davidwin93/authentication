@@ -61,23 +61,27 @@ func NewJWTHandlerBytes(privateKey, publicKey []byte) *JWTHandler {
 }
 
 type Claims struct {
-	Username string `json:"username"`
+	JWTOptions
 	jwt.RegisteredClaims
 }
 
 var algo jwt.SigningMethod = jwt.SigningMethodRS256
 
-func (jwtHandler *JWTHandler) InjectJWTKey(username string, w http.ResponseWriter, req *http.Request) {
+type JWTOptions struct {
+	Username string `json:"username"`
+	Name     string `json:"name"`
+}
+
+func (jwtHandler *JWTHandler) InjectJWTKey(opts JWTOptions, w http.ResponseWriter, req *http.Request) {
 	expirationTime := time.Now().Add(5 * time.Minute)
 	// Create the JWT claims, which includes the username and expiry time
 	claims := &Claims{
-		Username: username,
+		JWTOptions: opts,
 		RegisteredClaims: jwt.RegisteredClaims{
 			// In JWT, the expiry time is expressed as unix milliseconds
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
-
 	// Declare the token with the algorithm used for signing, and the claims
 	token := jwt.NewWithClaims(algo, claims)
 	// Create the JWT string
